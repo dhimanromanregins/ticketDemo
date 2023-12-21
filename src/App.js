@@ -2,8 +2,7 @@ import "./App.css";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-// import { useNavigate } from 'react-router-dom';
-import "react-toastify/dist/ReactToastify.css"; // Import CSS
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [registerForm, setRegisterForm] = useState({
@@ -18,10 +17,41 @@ function App() {
     pname: "",
     page: "",
   });
+
+  const HandleBackButton = () => {
+    console.log("back button i clicked.. !")
+    const show = document.getElementById('show-data');
+    console.log(show)
+    const postdata = document.getElementById('submit-model');
+    console.log(postdata, '=====')
+    if (show){
+      show.style.display = 'none';
+      postdata.style.display = 'block';
+    }
+  }
+
+  const clearFormFields = () => {
+    setRegisterForm({
+      tnumber: "",
+      ttitle: "",
+      description: "",
+      tclass: "",
+      tDeparture: "",
+      tarrival: "",
+      tdtime: "",
+      tatime: "",
+      pname: "",
+      page: "",
+    });
+  };
   const [GetData, SetData] = useState([]);
   const [getsearch, SetSearch] = useState("");
   const OnFormChange = (e) => {
     let { name, value } = e.target;
+    const erro = document.getElementById(`Erro-Message-${name}`);
+    if (erro) {
+      erro.style.display = "none";
+    }
     setRegisterForm((prevData) => ({
       ...prevData,
       [name]: value,
@@ -43,22 +73,30 @@ function App() {
           "Content-Type": "application/json",
         },
       });
-      console.log(response.data.status, "=========================>");
+      
       if (response.data) {
         toast("Data fetched Successful..!");
-        document.getElementById('show-data').style.display = "block";
-        document.getElementById('submit-model').style.display = "none";
+        document.getElementById("show-data").style.display = "block";
+        document.getElementById("submit-model").style.display = "none";
         console.log(response.data);
-        SetData(response.data)
-      } else if (response.data.status === 400) {
+        SetData(response.data);
+      } else if (response.data.status === 404) {
         toast("Ticket Not Found");
       }
     } catch (error) {
       console.log("Registration Failed...!", error);
+      toast("Ticket Not Found");
     }
   };
 
   const PostRegisterForm = async () => {
+    Object.keys(registerForm).forEach((key) => {
+      console.log(`${key}: ${registerForm[key]}`);
+      const erro = document.getElementById(`Erro-Message-${key}`);
+      if (registerForm[key] === "") {
+        erro.style.display = "block";
+      }
+    });
     let RegisterUrl = "http://127.0.0.1:8000/tickets-post/";
     const RegisterData = {
       ticket_number: registerForm.tnumber,
@@ -81,7 +119,8 @@ function App() {
       console.log(response.data, "=========================>");
       if (response.data) {
         toast("Data saved Successful..!");
-        
+        clearFormFields();
+
         // resetForm()
         const timeoutId = setTimeout(() => {
           // navigate('/');
@@ -154,14 +193,15 @@ function App() {
         </div>
       </nav>
 
-      <div className="modal-details text-center" id="show-data">
+      <div className="modal-details show text-center" id="show-data">
         <h3>Ticket Details</h3>
         <div className="modal-div">
           <div className="mb-3">
             <label className="form-label" for="tnumber">
               Ticket Number:
             </label>
-            <input disabled
+            <input
+              disabled
               className="form-control"
               type="text"
               id="tnumber"
@@ -176,7 +216,7 @@ function App() {
               Title:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="ttitle"
@@ -193,8 +233,8 @@ function App() {
               Description:
             </label>
             <input
-            disabled
-            value={GetData.description}
+              disabled
+              value={GetData.description}
               className="form-control"
               id="description"
               name="description"
@@ -207,7 +247,7 @@ function App() {
               Train Class:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="tclass"
@@ -224,7 +264,7 @@ function App() {
               Departure Station:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="tDeparture"
@@ -239,7 +279,7 @@ function App() {
               Arrival Station:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="tarrival"
@@ -256,7 +296,7 @@ function App() {
               Departure Time:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="tdtime"
@@ -270,7 +310,7 @@ function App() {
               Arrival Time:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="tatime"
@@ -286,7 +326,7 @@ function App() {
               Passenger Name:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="text"
               id="pname"
@@ -300,7 +340,7 @@ function App() {
               Passenger Age:
             </label>
             <input
-            disabled
+              disabled
               className="form-control"
               type="number"
               id="page"
@@ -309,7 +349,15 @@ function App() {
               placeholder="Passenger Age"
             />
           </div>
+          
         </div>
+        <button
+        onClick={HandleBackButton}
+            type="button"
+            className="btn btn-primary back"
+          >
+            Back
+          </button>
       </div>
 
       <div className="App" id="submit-model">
@@ -330,6 +378,9 @@ function App() {
               id="ticket_number"
               placeholder="Ticket Number"
             />
+            <span className="Erro-Message" id="Erro-Message-tnumber">
+              Ticket Number is required..!
+            </span>
           </div>
           <div className="mb-3">
             <label htmlFor="exampleFormControlInput1" className="form-label">
@@ -344,6 +395,9 @@ function App() {
               id="ticket_title"
               placeholder="Title"
             />
+            <span className="Erro-Message" id="Erro-Message-ttitle">
+              Title is required..!
+            </span>
           </div>
         </div>
 
@@ -361,6 +415,9 @@ function App() {
               id="ticket_description"
               placeholder="Ticket Description"
             />
+            <span className="Erro-Message" id="Erro-Message-description">
+              Description is required..!
+            </span>
           </div>
           <div className="mb-3">
             <label htmlFor="exampleFormControlInput1" className="form-label">
@@ -375,6 +432,9 @@ function App() {
               id="ticket_class"
               placeholder="Ticket Class"
             />
+            <span className="Erro-Message" id="Erro-Message-tclass">
+              Train class is required..!
+            </span>
           </div>
         </div>
 
@@ -392,6 +452,9 @@ function App() {
               id="departure_station"
               placeholder="Departure Station"
             />
+            <span className="Erro-Message" id="Erro-Message-tDeparture">
+              Departure Station is required..!
+            </span>
           </div>
           <div className="mb-3">
             <label htmlFor="exampleFormControlInput1" className="form-label">
@@ -406,6 +469,12 @@ function App() {
               id="ticket_station"
               placeholder="Arrival Station"
             />
+            <p className="hinttext">Please enter only 5 characters.</p>
+            <div>
+              <span className="Erro-Message" id="Erro-Message-tarrival">
+                Arrival Station is required..!
+              </span>
+            </div>
           </div>
         </div>
 
@@ -423,6 +492,9 @@ function App() {
               id="time"
               placeholder="Departure Time"
             />
+            <span className="Erro-Message" id="Erro-Message-tdtime">
+              Departure Time is required..!
+            </span>
           </div>
           <div className="mb-3">
             <label htmlFor="exampleFormControlInput1" className="form-label">
@@ -432,11 +504,14 @@ function App() {
               onChange={OnFormChange}
               value={registerForm.tatime}
               name="tatime"
-              type="datetime-local" // Use datetime-local for date and time input
+              type="datetime-local"
               className="form-control"
               id="arrival_time"
               placeholder="Arrival Time"
             />
+            <span className="Erro-Message" id="Erro-Message-tatime">
+              Arrival Time is required..!
+            </span>
           </div>
         </div>
 
@@ -454,6 +529,9 @@ function App() {
               id="name"
               placeholder="Passenger Name"
             />
+            <span className="Erro-Message" id="Erro-Message-pname">
+              Passenger Name is required..!
+            </span>
           </div>
           <div className="mb-3">
             <label htmlFor="exampleFormControlInput1" className="form-label">
@@ -468,6 +546,9 @@ function App() {
               id="time"
               placeholder="Passenger Age"
             />
+            <span className="Erro-Message" id="Erro-Message-page">
+              Passenger Age is required..!
+            </span>
           </div>
         </div>
         <div className="btn">
